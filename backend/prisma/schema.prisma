@@ -1,0 +1,333 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String        @id @default(uuid())
+  role            UserRole      @default(USER)
+  email           String        @unique
+  passwordHash    String?
+  googleId        String?       @unique
+  name            String
+  phone           String?
+  verifiedEmail   Boolean       @default(false)
+  profileStatus   ProfileStatus @default(PENDING)
+  profilePhoto    String?
+  documentType    String?       // "RG" ou "CNH"
+  documentNumber  String?
+  documentFront   String?       // URL da foto frente
+  documentBack    String?       // URL da foto verso
+  approvedAt      DateTime?
+  approvedBy      String?       // admin user id
+  rejectedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime      @default(now())
+
+  // Push Notifications
+  pushToken       String?       // Expo Push Token para notificações
+
+  // Campos específicos de motorista
+  cpf             String?
+  rg              String?
+  birthDate       String?       // Formato DD/MM/AAAA
+  cnh             String?
+  cnhCategory     String?
+  cnhExpiry       String?       // Formato DD/MM/AAAA
+
+  vehicles        Vehicle[]
+  tripsAsDriver   Trip[]        @relation("DriverTrips")
+  shipments       Shipment[]
+
+  // Relacoes de pedidos
+  ordersAsCustomer Order[]      @relation("CustomerOrders")
+  ordersAsDriver   Order[]      @relation("DriverOrders")
+  messages         Message[]
+  vehicleChangeRequests VehicleChangeRequest[]
+  objects          Object[]
+}
+
+model Vehicle {
+  id            String   @id @default(uuid())
+  driverId      String
+  driver        User     @relation(fields: [driverId], references: [id])
+  plate         String
+  model         String
+  brand         String?
+  year          String?
+  color         String?
+  capacityKg    Int
+  capacityM3    Float
+  documents     Json     // links to S3
+  vehiclePhoto  String?
+  status        VehicleStatus @default(PENDING)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt @default(now())
+  approvedBy    String?  // admin id
+  approvedAt    DateTime?
+  adminNotes    String?  // Mensagem do admin (aprovação/rejeição)
+  trips         Trip[]
+  changeRequests VehicleChangeRequest[]
+
+  // Status de alteração pendente
+  hasPendingChange Boolean @default(false)
+}
+
+model Trip {
+  id            String   @id @default(uuid())
+  driverId      String
+  driver        User     @relation(fields: [driverId], references: [id], name: "DriverTrips")
+  vehicleId     String
+  vehicle       Vehicle  @relation(fields: [vehicleId], references: [id])
+  originName    String
+  originLat     Float
+  originLng     Float
+  destName      String
+  destLat       Float
+  destLng       Float
+  departureAt   DateTime
+  estimatedArrival DateTime?  // Data/hora estimada de chegada
+  distanceKm    Float?        // Distância em km
+  durationMinutes Int?        // Duração estimada em minutos
+  availableSeats Int?         // Lugares disponíveis (para passageiros)
+  availableCapacityKg Float?  // Capacidade disponível em kg
+  pricePerKm    Float?        // Preço por km para mercadorias
+  notes         String?       // Observações do motorista
+  status        TripStatus @default(SCHEDULED)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  shipments     Shipment[]
+  orders        Order[]
+  lastLocation  Json?     // { lat, lng, ts }
+}
+
+model Shipment {
+  id             String   @id @default(uuid())
+  clientId       String
+  client         User     @relation(fields: [clientId], references: [id])
+  tripId         String?
+  trip           Trip?    @relation(fields: [tripId], references: [id])
+  description    String
+  weightKg       Float
+  volumeM3       Float
+  pickupLat      Float
+  pickupLng      Float
+  pickupAddress  String
+  deliverLat     Float?
+  deliverLng     Float?
+  deliverAddress String?
+  photos         Json
+  status         ShipmentStatus @default(PENDING)
+  policyAccepted Boolean
+  createdAt      DateTime @default(now())
+}
+
+enum UserRole {
+  USER
+  DRIVER
+  ADMIN
+}
+
+enum ProfileStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VehicleStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TripStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ShipmentStatus {
+  PENDING
+  CONFIRMED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+// Modelo para pedidos de envio (cliente -> motorista)
+model Order {
+  id             String      @id @default(uuid())
+
+  // Cliente que fez o pedido
+  customerId     String
+  customer       User        @relation("CustomerOrders", fields: [customerId], references: [id])
+
+  // Motorista (opcional - pode ser definido depois para pedidos avulsos)
+  driverId       String?
+  driver         User?       @relation("DriverOrders", fields: [driverId], references: [id])
+
+  // Percurso relacionado (opcional - pedidos avulsos nao tem trip)
+  tripId         String?
+  trip           Trip?       @relation(fields: [tripId], references: [id])
+
+  // Origem e destino do pedido (para pedidos avulsos)
+  originName     String?
+  originLat      Float?
+  originLng      Float?
+  destName       String?
+  destLat        Float?
+  destLng        Float?
+
+  // Detalhes do envio
+  description    String      // Descricao da mercadoria
+  weight         Float       // Peso em kg
+  dimensions     String?     // Dimensoes (opcional)
+  estimatedPrice Float       // Preco estimado
+  finalPrice     Float?      // Preco final (apos negociacao)
+  notes          String?     // Observacoes do cliente
+
+  // Status do pedido
+  status         OrderStatus @default(PENDING)
+  rejectionReason String?    // Motivo da recusa (pelo motorista)
+  cancellationReason String? // Motivo do cancelamento (pelo cliente)
+  cancelledBy    String?     // 'customer' ou 'driver' - quem cancelou
+
+  // Timestamps
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  acceptedAt     DateTime?
+  rejectedAt     DateTime?
+  completedAt    DateTime?
+  cancelledAt    DateTime?   // Quando foi cancelado
+  readAt         DateTime?   // Quando o usuario visualizou o pedido
+
+  // Conversas e mensagens do chat
+  conversations  Conversation[]
+  messages       Message[]
+}
+
+// Modelo para conversas (entre cliente e motorista específico)
+model Conversation {
+  id           String    @id @default(uuid())
+  orderId      String
+  order        Order     @relation(fields: [orderId], references: [id])
+
+  // Participantes da conversa
+  customerId   String
+  driverId     String
+
+  // Timestamps
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Mensagens desta conversa
+  messages     Message[]
+
+  // Índice único para garantir uma conversa por par (order + driver)
+  @@unique([orderId, driverId])
+}
+
+// Modelo para mensagens do chat
+model Message {
+  id             String        @id @default(uuid())
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+  senderId       String
+  sender         User          @relation(fields: [senderId], references: [id])
+  content        String
+  read           Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+
+  // Mantém orderId para compatibilidade
+  orderId        String?
+  order          Order?        @relation(fields: [orderId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// Solicitação de alteração de veículo
+model VehicleChangeRequest {
+  id              String                      @id @default(uuid())
+  vehicleId       String
+  vehicle         Vehicle                     @relation(fields: [vehicleId], references: [id])
+  driverId        String
+  driver          User                        @relation(fields: [driverId], references: [id])
+
+  // Dados novos solicitados
+  newPlate        String?
+  newModel        String?
+  newBrand        String?
+  newYear         String?
+  newColor        String?
+  newCapacityKg   Int?
+  newCapacityM3   Float?
+  newDocuments    Json?                       // Novos documentos (CRLV, fotos, etc)
+  newVehiclePhoto String?
+
+  // Status e controle
+  status          VehicleChangeRequestStatus  @default(PENDING)
+  rejectionReason String?
+
+  // Admin que processou
+  reviewedBy      String?
+  reviewedAt      DateTime?
+
+  // Timestamps
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+}
+
+enum VehicleChangeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Modelo para objetos cadastrados pelo cliente (para reutilização)
+model Object {
+  id                   String   @id @default(uuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id])
+
+  // Identificação
+  name                 String
+  description          String?
+
+  // Categoria
+  category             String   // Ex: "Eletrônicos", "Móveis", etc.
+  subcategory          String?  // Ex: "Celular", "Sofá", etc.
+  brand                String?
+
+  // Dimensões e peso
+  weight               Float?   // Em kg
+  height               Float?   // Em cm
+  width                Float?   // Em cm
+  depth                Float?   // Em cm
+
+  // Características
+  declaredValue        Float?   // Valor declarado
+  isFragile            Boolean  @default(false)
+  requiresRefrigeration Boolean @default(false)
+  requiresSpecialCare  Boolean  @default(false)
+  specialCareNotes     String?
+
+  // Fotos e Vídeos
+  photos               Json     @default("[]") // Array de URLs de fotos
+  videos               Json     @default("[]") // Array de URLs de vídeos
+
+  // Timestamps
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}

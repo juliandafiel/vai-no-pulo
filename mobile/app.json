@@ -1,0 +1,89 @@
+{
+  "expo": {
+    "name": "transport-system",
+    "slug": "transport-system",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/fundo1.jpg",
+      "resizeMode": "cover",
+      "backgroundColor": "#1a1a2e"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vainopulo.transport",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Precisamos de acesso a camera para verificacao facial e captura de documentos",
+        "NSPhotoLibraryUsageDescription": "Precisamos de acesso a galeria para selecionar fotos de documentos",
+        "NSLocationWhenInUseUsageDescription": "Precisamos da sua localizacao para mostrar rotas e trajetos no mapa"
+      },
+      "config": {
+        "googleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.vainopulo.transport",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_ANDROID_GOOGLE_MAPS_API_KEY"
+        }
+      },
+      "googleServicesFile": "./google-services.json"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "vai-no-pulo",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Precisamos de acesso a camera para verificacao facial e captura de documentos"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Precisamos de acesso a galeria para selecionar fotos de documentos"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Precisamos da sua localizacao para mostrar rotas e trajetos no mapa"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#4facfe",
+          "sounds": []
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "64676873-95f7-4b21-a5ef-9b9ca2ad9370"
+      }
+    },
+    "owner": "jaco.lima.freire"
+  }
+}

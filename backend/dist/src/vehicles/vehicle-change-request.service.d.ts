@@ -1,0 +1,281 @@
+import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
+import { VehicleChangeRequestStatus } from '@prisma/client';
+interface CreateChangeRequestDto {
+    vehicleId: string;
+    newPlate?: string;
+    newModel?: string;
+    newBrand?: string;
+    newYear?: string;
+    newColor?: string;
+    newCapacityKg?: number;
+    newCapacityM3?: number;
+    newDocuments?: any;
+    newVehiclePhoto?: string;
+}
+interface ReviewChangeRequestDto {
+    status: 'APPROVED' | 'REJECTED';
+    rejectionReason?: string;
+    adminMessage?: string;
+}
+export declare class VehicleChangeRequestService {
+    private prisma;
+    private mailService;
+    constructor(prisma: PrismaService, mailService: MailService);
+    create(driverId: string, data: CreateChangeRequestDto): Promise<{
+        driver: {
+            id: string;
+            email: string;
+            name: string;
+        };
+        vehicle: {
+            id: string;
+            approvedAt: Date | null;
+            approvedBy: string | null;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.VehicleStatus;
+            updatedAt: Date;
+            driverId: string;
+            plate: string;
+            model: string;
+            capacityKg: number;
+            capacityM3: number;
+            brand: string | null;
+            year: string | null;
+            documents: import("@prisma/client/runtime/library").JsonValue;
+            color: string | null;
+            vehiclePhoto: string | null;
+            adminNotes: string | null;
+            hasPendingChange: boolean;
+        };
+    } & {
+        id: string;
+        rejectionReason: string | null;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.VehicleChangeRequestStatus;
+        updatedAt: Date;
+        driverId: string;
+        vehicleId: string;
+        newPlate: string | null;
+        newModel: string | null;
+        newBrand: string | null;
+        newYear: string | null;
+        newColor: string | null;
+        newCapacityKg: number | null;
+        newCapacityM3: number | null;
+        newDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        newVehiclePhoto: string | null;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+    }>;
+    findByDriver(driverId: string): Promise<({
+        vehicle: {
+            id: string;
+            approvedAt: Date | null;
+            approvedBy: string | null;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.VehicleStatus;
+            updatedAt: Date;
+            driverId: string;
+            plate: string;
+            model: string;
+            capacityKg: number;
+            capacityM3: number;
+            brand: string | null;
+            year: string | null;
+            documents: import("@prisma/client/runtime/library").JsonValue;
+            color: string | null;
+            vehiclePhoto: string | null;
+            adminNotes: string | null;
+            hasPendingChange: boolean;
+        };
+    } & {
+        id: string;
+        rejectionReason: string | null;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.VehicleChangeRequestStatus;
+        updatedAt: Date;
+        driverId: string;
+        vehicleId: string;
+        newPlate: string | null;
+        newModel: string | null;
+        newBrand: string | null;
+        newYear: string | null;
+        newColor: string | null;
+        newCapacityKg: number | null;
+        newCapacityM3: number | null;
+        newDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        newVehiclePhoto: string | null;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+    })[]>;
+    findAllPending(): Promise<({
+        driver: {
+            id: string;
+            email: string;
+            name: string;
+            phone: string;
+            profilePhoto: string;
+        };
+        vehicle: {
+            id: string;
+            approvedAt: Date | null;
+            approvedBy: string | null;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.VehicleStatus;
+            updatedAt: Date;
+            driverId: string;
+            plate: string;
+            model: string;
+            capacityKg: number;
+            capacityM3: number;
+            brand: string | null;
+            year: string | null;
+            documents: import("@prisma/client/runtime/library").JsonValue;
+            color: string | null;
+            vehiclePhoto: string | null;
+            adminNotes: string | null;
+            hasPendingChange: boolean;
+        };
+    } & {
+        id: string;
+        rejectionReason: string | null;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.VehicleChangeRequestStatus;
+        updatedAt: Date;
+        driverId: string;
+        vehicleId: string;
+        newPlate: string | null;
+        newModel: string | null;
+        newBrand: string | null;
+        newYear: string | null;
+        newColor: string | null;
+        newCapacityKg: number | null;
+        newCapacityM3: number | null;
+        newDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        newVehiclePhoto: string | null;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+    })[]>;
+    findAll(status?: VehicleChangeRequestStatus): Promise<({
+        driver: {
+            id: string;
+            email: string;
+            name: string;
+            phone: string;
+            profilePhoto: string;
+        };
+        vehicle: {
+            id: string;
+            approvedAt: Date | null;
+            approvedBy: string | null;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.VehicleStatus;
+            updatedAt: Date;
+            driverId: string;
+            plate: string;
+            model: string;
+            capacityKg: number;
+            capacityM3: number;
+            brand: string | null;
+            year: string | null;
+            documents: import("@prisma/client/runtime/library").JsonValue;
+            color: string | null;
+            vehiclePhoto: string | null;
+            adminNotes: string | null;
+            hasPendingChange: boolean;
+        };
+    } & {
+        id: string;
+        rejectionReason: string | null;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.VehicleChangeRequestStatus;
+        updatedAt: Date;
+        driverId: string;
+        vehicleId: string;
+        newPlate: string | null;
+        newModel: string | null;
+        newBrand: string | null;
+        newYear: string | null;
+        newColor: string | null;
+        newCapacityKg: number | null;
+        newCapacityM3: number | null;
+        newDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        newVehiclePhoto: string | null;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+    })[]>;
+    findOne(id: string): Promise<{
+        driver: {
+            id: string;
+            email: string;
+            name: string;
+            phone: string;
+            profilePhoto: string;
+        };
+        vehicle: {
+            id: string;
+            approvedAt: Date | null;
+            approvedBy: string | null;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.VehicleStatus;
+            updatedAt: Date;
+            driverId: string;
+            plate: string;
+            model: string;
+            capacityKg: number;
+            capacityM3: number;
+            brand: string | null;
+            year: string | null;
+            documents: import("@prisma/client/runtime/library").JsonValue;
+            color: string | null;
+            vehiclePhoto: string | null;
+            adminNotes: string | null;
+            hasPendingChange: boolean;
+        };
+    } & {
+        id: string;
+        rejectionReason: string | null;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.VehicleChangeRequestStatus;
+        updatedAt: Date;
+        driverId: string;
+        vehicleId: string;
+        newPlate: string | null;
+        newModel: string | null;
+        newBrand: string | null;
+        newYear: string | null;
+        newColor: string | null;
+        newCapacityKg: number | null;
+        newCapacityM3: number | null;
+        newDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        newVehiclePhoto: string | null;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+    }>;
+    review(id: string, adminId: string, data: ReviewChangeRequestDto): Promise<{
+        id: string;
+        rejectionReason: string | null;
+        createdAt: Date;
+        status: import(".prisma/client").$Enums.VehicleChangeRequestStatus;
+        updatedAt: Date;
+        driverId: string;
+        vehicleId: string;
+        newPlate: string | null;
+        newModel: string | null;
+        newBrand: string | null;
+        newYear: string | null;
+        newColor: string | null;
+        newCapacityKg: number | null;
+        newCapacityM3: number | null;
+        newDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        newVehiclePhoto: string | null;
+        reviewedBy: string | null;
+        reviewedAt: Date | null;
+    }>;
+    cancel(id: string, driverId: string): Promise<{
+        message: string;
+    }>;
+    hasPendingRequest(vehicleId: string): Promise<boolean>;
+}
+export {};
